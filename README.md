@@ -30,6 +30,10 @@ npm install mathjs
 npm install lucide-react
 ```
 
+```bash
+npm install mathjs
+```
+
 Some images of the website:-
 
 ![]()
