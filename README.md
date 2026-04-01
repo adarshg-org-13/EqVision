@@ -37,8 +37,8 @@ npm install mathjs
 Some images of the website:-
 
 ![main_image_showcase_1](https://github.com/adarshg-org-13/EqVision/blob/0588ae420fc90584bd02989c5573dc34fd8f7e82/public/main_image_sc.png)
-![]()
-![]()
-![]()
+![in_website_image_1]()
+![in_website_image_2]()
+![in_website_image_3]()
 
 Visit the website now :- 
