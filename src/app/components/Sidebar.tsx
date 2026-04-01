@@ -169,20 +169,51 @@ export default function Sidebar({
               </div>
             ))}
           </div>
-
-          {/* Math keypad */}
-          <div className='grid grid-cols-4 gap-2 pt-2'>
+          
+          {/* Math Keypad */}
+          <div className="grid grid-cols-4 gap-2 pt-2">
             {MATH_KEYS.map(key => (
-                <button
-                  key={key}
-                  onClick={() => handleInsertMath(key)}
-                  className={`p-1.5 text-xs font-mono rounded-lg shadow-sm acitve:scale-95 hover:scale-105 transition-all duration-200 ease-out ${isDarkMode ? 'bg-[#333333] hover:bg-[#444444] text-gray-200 border border-[#444444]' : 'bg-white hover:bg-gray-50 text-stone-700 border border-[#e6e2d6]'}`}
-                >
-                    {key}
-                </button>
+              <button
+                key={key}
+                onClick={() => handleInsertMath(key)}
+                className={`p-1.5 text-xs font-mono rounded-lg shadow-sm active:scale-95 hover:scale-105 transition-all duration-200 ease-out ${isDarkMode ? 'bg-[#333333] hover:bg-[#444444] text-gray-200 border border-[#444444]' : 'bg-white hover:bg-gray-50 text-stone-700 border border-[#e6e2d6]'}`}
+              >
+                {key}
+              </button>
             ))}
           </div>
         </div>
 
         {/* Variables Section */}
-        {variables.filter(v => v in variableValues)}
+        {variables.filter(v => v in variableValues).length > 0 && (
+          <div className={`space-y-3 pt-4 border-t ${isDarkMode ? 'border-[#444444]' : 'border-[#e6e2d6]'}`}>
+            <h2 className={`text-sm font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-400' : 'text-stone-600'}`}>Variables</h2>
+            <div className="space-y-4">
+              {variables.filter(v => v in variableValues).map(v => (
+                <div key={v} className="space-y-1">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className={`font-mono font-medium ${isDarkMode ? 'text-gray-300' : 'text-stone-700'}`}>{v}</span>
+                    <span className={`font-mono ${isDarkMode ? 'text-gray-500' : 'text-stone-500'}`}>{variableValues[v]?.toFixed(2) || 0}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="-10"
+                    max="10"
+                    step="0.1"
+                    value={variableValues[v] || 0}
+                    onChange={(e) => onUpdateVariable(v, parseFloat(e.target.value))}
+                    className={`w-full h-1 rounded-lg appearance-none cursor-pointer ${isDarkMode ? 'bg-[#444444] accent-gray-300' : 'bg-[#d4cebd] accent-stone-700'}`}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className={`p-4 border-t text-xs text-center ${isDarkMode ? 'border-[#444444] text-gray-500' : 'border-[#e6e2d6] text-stone-400'}`}>
+        EqVision
+      </div>
+    </div>
+  );
+}
