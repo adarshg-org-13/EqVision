@@ -129,5 +129,175 @@ export default function Graph ({equations,variables,isDarkMode,showToast}: Graph
             ctx.lineTo(width,originY);
         }
         ctx.stroke();
+
+        //Draw Equations
+        equations.forEach(eq => {
+            if (!eq.visible || !eq.compiled || eq.error)return;
+
+            ctx.strokeStyle = eq.color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            let isFirst = true;
+            const pixelStep = 1; //1 pixel per step for smooth curves
+
+            if (eq.isXFunction){
+                // Plot x = f(y)
+                let prevPx: number | null = null;
+                let prevPy: number | null = null;
+                let prevMathX: number | null = null;
+                let prevMathY: number | null = null;
+
+                for (let py = 0; py <= height; py+= pixelStep){
+                    const mathY = centerY - (py - height / 2) /scale;
+
+                    try{
+                        const mathX = eq.compiled.evaluate({y: mathY, ...variables});
+
+                        if (typeof mathX !== 'number' || isNaN(mathX) || !isFinite(mathX)){
+                            isFirst = true;
+                            prevPx = null;
+                            continue;
+                        }
+
+                        const px = (mathX - centerX)*scale + width/2;
+
+                        //handle horizontal asymptotes
+                        if (!isFirst && prevPx !== null && prevMathX !== null && prevMathY !== null){
+                            if (Math.abs(px - prevPx) > 20){
+                                const midY = (prevMathY + mathY) /2;
+                                const midX = eq.compiled.evaluate({y:midY, ...variables});
+                                const minMathX = Math.min(prevMathX,mathX);
+                                const maxMathX = Math.max(prevMathX,mathX);
+                                const isContinuous = midX >= minMathX - 0.001 && midX <= maxMathX + 0.001;
+
+                                if (!isContinuous || isNaN(midX) || !isFinite(midX)){
+                                    isFirst = true;
+                                }
+                            }
+                        }
+
+                        if (isFirst){
+                            ctx.moveTo(px,py);
+                            isFirst = false;
+                        } else {
+                            ctx.lineTo(px,py);
+                        }
+
+                        prevPx = px;
+                        prevPy = py;
+                        prevMathX = mathX;
+                        prevMathY = mathY;
+                    } catch (e) {
+                        isFirst = true;
+                        prevPx = null;
+                    }
+                }
+            } else {
+                //Plot y = f(x)
+                let prevPx: number | null = null;
+                let prevPy: number | null = null;
+                let prevMathX: number | null = null;
+                let prevMathY: number | null = null;
+
+                for (let px = 0; px <= width; px += pixelStep){
+                    const mathX = (px-width/2)/scale + centerX;
+
+                    try{
+                        const mathY = eq.compiled.evaluate({x:mathX,...variables});
+
+                        if  (typeof mathY !== 'number' || isNaN(mathY) || !isFinite(mathY)){
+                            isFirst = true;
+                            prevPy = null;
+                            continue;
+                        }
+
+                        const py = height/2 - (mathY - centerY)*scale;
+
+                        //Handle vertical
+                        if (!isFirst && prevPx !==null && prevMathX !== null && prevMathY !== null){
+                            if (Math.abs(px - prevPx) > 20){
+                                const midX = (prevMathY + mathY) / 2;
+                                const midY = eq.compiled.evaluate({x:midX,...variables});
+                                const minMathY = Math.min(prevMathY,mathY);
+                                const maxMathY = Math.max(prevMathY,mathY);
+                                const isContinuous = midY >= minMathY - 0.001 && midY <= maxMathY + 0.001;
+
+                                if (!isContinuous || isNaN(midY) || !isFinite(midY)){
+                                    isFirst = true;
+                                }
+                            }
+                        }
+                        
+                        if (isFirst){
+                            ctx.moveTo(px,py);
+                            isFirst = false;
+                        } else {
+                            ctx.lineTo(px,py);
+                        }
+
+                        prevPx = px;
+                        prevPy = py;
+                        prevMathX = mathX;
+                        prevMathY = mathY;
+                    } catch(e) {
+                        isFirst = true;
+                        prevPy = null;
+                    }
+                }
+            }
+            ctx.stroke();
+        });
+    };
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        setIsDragging(true);
+        setLastMouse({x: e.clientX,y:e.clientY});
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return;
+        const dx = e.clientX - lastMouse.x;
+        const dy = e.clientY - lastMouse.y;
+
+        setView(prev => ({
+            ...prev,
+            x: prev.x - dx / prev.scale,
+            y: prev.y + dy / prev.scale,
+        }));
+
+        setLastMouse({x:e.clientX,y:e.clientY});
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleWheel = (e: React.WheelEvent) => {
+        e.preventDefault();
+        const zoomFactor = 1.1;
+        const direction = e.deltaY > 0 ? -1 : 1;
+
+        setView(prev => {
+            let newScale = prev.scale * Math.pow(zoomFactor,direction);
+            newScale = Math.max(1,Math.min(newScale,1000)); //Clamp scale
+            return {...prev,scale:newScale};
+        });
+    };
+
+    const handleExportClick = () => {
+        setExportFileName('eqvision-graph');
+        setShowExportModal(true);
+    };
+
+    const confirmExport = (e: React.FormEvent) => {
+        e.preventDefault();
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        showToast(`Downloading ${exportFileName}.png...`)
+
+        const link = document.createElement('a');
+        link.download = `${exportFilename}.png`;
     }
 }
