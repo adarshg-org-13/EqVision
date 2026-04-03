@@ -25,7 +25,7 @@ const DEFAULT_EQUATIONS = [
   }
 ];
 
-export default function Page() {
+export default function App() {
   const [equations, setEquations] = useState<ParsedEquation[]>(() => {
     try {
       const hash = window.location.hash.slice(1);
