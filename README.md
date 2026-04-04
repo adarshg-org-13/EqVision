@@ -45,5 +45,8 @@ Some images of the website:-
 ![in_website_image_1]()
 ![in_website_image_2]()
 ![in_website_image_3]()
+![in_website_image_4]()
+![in_website_image_5]()
+![in_website_image_6]()
 
 Visit the website now :- https://eq-vision-8n9d.vercel.app/
