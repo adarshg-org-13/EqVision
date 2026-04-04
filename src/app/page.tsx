@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import Graph from './components/Graph';
+import Formulas from './components/Formulas';
 import { parseEquation, ParsedEquation } from './utils/parser';
 
 const COLORS = [
@@ -26,6 +28,7 @@ const DEFAULT_EQUATIONS = [
 ];
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<'graph' | 'formulas'>('graph');
   const [equations, setEquations] = useState<ParsedEquation[]>(() => {
     try {
       const hash = window.location.hash.slice(1);
@@ -50,6 +53,7 @@ export default function App() {
 
   const [variableValues, setVariableValues] = useState<Record<string, number>>({});
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [toast, setToast] = useState<{ message: string; id: number } | null>(null);
 
   const showToast = useCallback((message: string) => {
@@ -78,10 +82,11 @@ export default function App() {
     setVariableValues(prev => ({ ...prev, [name]: 1 }));
   };
 
-  const handleAddEquation = () => {
+  const handleAddEquation = (initialText: string = '') => {
     const id = Date.now().toString();
     const color = COLORS[equations.length % COLORS.length];
-    setEquations([...equations, { id, text: '', color, visible: true, variables: [] }]);
+    const parsed = initialText ? parseEquation(initialText) : { variables: [] };
+    setEquations([...equations, { id, text: initialText, color, visible: true, ...parsed }]);
   };
 
   const handleUpdateEquation = (id: string, text: string) => {
@@ -108,23 +113,104 @@ export default function App() {
 
   return (
     <div className={`relative h-screen w-full overflow-hidden font-sans ${isDarkMode ? 'dark bg-[#1a1a1a]' : 'bg-[#fdfcf8]'}`}>
-      <div className="absolute inset-0">
-        <Graph equations={equations} variables={variableValues} isDarkMode={isDarkMode} showToast={showToast} />
-      </div>
-      <Sidebar
-        equations={equations}
-        variables={allVariables}
-        variableValues={variableValues}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-        onAddEquation={handleAddEquation}
-        onUpdateEquation={handleUpdateEquation}
-        onRemoveEquation={handleRemoveEquation}
-        onToggleVisibility={handleToggleVisibility}
-        onUpdateVariable={handleUpdateVariable}
-        onAddVariable={handleAddVariable}
-        showToast={showToast}
-      />
+      
+      {/* Dynamic Island Navbar */}
+      <motion.div
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", bounce: 0.4, duration: 0.8 }}
+        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-1.5 rounded-full shadow-2xl backdrop-blur-xl border ${
+          isDarkMode ? 'bg-[#222222]/85 border-[#444444]' : 'bg-[#f4f1ea]/85 border-[#e6e2d6]'
+        }`}
+      >
+        <button 
+          onClick={() => setActiveTab('graph')} 
+          className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+            activeTab === 'graph' 
+              ? (isDarkMode ? 'bg-white text-black shadow-sm' : 'bg-stone-800 text-white shadow-sm') 
+              : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-stone-500 hover:text-stone-800')
+          }`}
+        >
+          Graph
+        </button>
+        <button 
+          onClick={() => setActiveTab('formulas')} 
+          className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
+            activeTab === 'formulas' 
+              ? (isDarkMode ? 'bg-white text-black shadow-sm' : 'bg-stone-800 text-white shadow-sm') 
+              : (isDarkMode ? 'text-gray-400 hover:text-white' : 'text-stone-500 hover:text-stone-800')
+          }`}
+        >
+          Formulas
+        </button>
+      </motion.div>
+
+      <AnimatePresence mode="wait">
+        {activeTab === 'graph' ? (
+          <motion.div 
+            key="graph-view"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0"
+          >
+            <div className="absolute inset-0">
+              <Graph equations={equations} variables={variableValues} isDarkMode={isDarkMode} showToast={showToast} />
+            </div>
+
+            <AnimatePresence>
+              {!isSidebarOpen && (
+                <motion.button
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  onClick={() => setIsSidebarOpen(true)}
+                  className={`absolute top-4 left-4 z-20 p-3 rounded-xl shadow-xl backdrop-blur-md border transition-all hover:scale-105 active:scale-95 ${
+                    isDarkMode 
+                      ? 'bg-[#222222]/85 border-[#444444] text-gray-200 hover:bg-[#333333]' 
+                      : 'bg-[#f4f1ea]/85 border-[#e6e2d6] text-stone-800 hover:bg-[#e6e2d6]'
+                  }`}
+                  title="Open Sidebar"
+                >
+                  <Menu size={20} />
+                </motion.button>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {isSidebarOpen && (
+                <Sidebar
+                  equations={equations}
+                  variables={allVariables}
+                  variableValues={variableValues}
+                  isDarkMode={isDarkMode}
+                  onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+                  onAddEquation={handleAddEquation}
+                  onUpdateEquation={handleUpdateEquation}
+                  onRemoveEquation={handleRemoveEquation}
+                  onToggleVisibility={handleToggleVisibility}
+                  onUpdateVariable={handleUpdateVariable}
+                  onAddVariable={handleAddVariable}
+                  showToast={showToast}
+                  onClose={() => setIsSidebarOpen(false)}
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="formulas-view"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0"
+          >
+            <Formulas isDarkMode={isDarkMode} showToast={showToast} />
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <AnimatePresence>
         {toast && (

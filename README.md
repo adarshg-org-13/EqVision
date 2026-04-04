@@ -2,7 +2,8 @@
 
 EqVision is a Graph Visualizer website which helps the users to visulaize the equations of maths by simple graphs
 this website comes with a simple ui which is very user friendly for a first time user. In this website a user can
-easily visualize the graphs by entering the equation and declaring variables.
+easily visualize the graphs by entering the equation and declaring variables you can also revise the math formulaes
+in the formulas tab and check out their graphs and equations.
 
 This is Website is build on Next.js framework
 
