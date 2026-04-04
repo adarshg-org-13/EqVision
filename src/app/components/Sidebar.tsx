@@ -303,7 +303,7 @@ export default function Sidebar({
       </div>
 
       <div className={`p-4 border-t text-xs text-center ${isDarkMode ? 'border-[#444444] text-gray-500' : 'border-[#e6e2d6] text-stone-400'}`}>
-        Powered by mathjs & React
+        Eq Vision
       </div>
     </motion.div>
   );
