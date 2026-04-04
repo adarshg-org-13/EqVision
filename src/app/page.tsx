@@ -192,8 +192,8 @@ export default function App() {
                   onToggleVisibility={handleToggleVisibility}
                   onUpdateVariable={handleUpdateVariable}
                   onAddVariable={handleAddVariable}
-                  showToast={showToast}
                   onClose={() => setIsSidebarOpen(false)}
+                  showToast={showToast}
                 />
               )}
             </AnimatePresence>
